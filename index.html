@@ -552,15 +552,22 @@ html[data-theme="dark"] .btn.primary { color: var(--bg); }
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
   position: relative;
+  contain: layout paint;
+  transition: transform 0.1s ease;
 }
+.card:active { transform: scale(0.985); }
 .card-inner {
   position: relative;
   width: 100%;
   height: 100%;
   transform-style: preserve-3d;
-  transition: transform .5s cubic-bezier(.4,0,.2,1);
+  -webkit-transform-style: preserve-3d;
+  transition: transform .32s cubic-bezier(.25,1,.5,1);
 }
-.card.flipped .card-inner { transform: rotateY(180deg); }
+.card.flipped .card-inner {
+  transform: rotateY(180deg);
+  will-change: transform;
+}
 .face {
   position: absolute;
   inset: 0;
@@ -610,7 +617,7 @@ html[data-theme="dark"] .btn.primary { color: var(--bg); }
   font-family: "JetBrains Mono", monospace;
   font-size: 10px;
   letter-spacing: 0.04em;
-  padding: 3px 8px;
+  padding: 4px 10px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border);
   background: var(--surface);
@@ -618,7 +625,10 @@ html[data-theme="dark"] .btn.primary { color: var(--bg); }
   cursor: pointer;
   transition: all var(--transition);
   font-weight: 400;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
+.card .mark:active { transform: scale(0.92); }
 .card .mark:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
 .card.mastered .mark {
   background: var(--success);
@@ -868,18 +878,53 @@ html[data-theme="dark"] .card.mastered .face { border-color: rgba(63,185,110,.2)
     scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
     touch-action: pan-x;
+    scroll-snap-type: x mandatory;
+    scroll-padding: 8px;
   }
   .sidebar::-webkit-scrollbar { display: none; }
   .sidebar h4, .sidebar-foot { display: none; }
-  .navitem { flex: 0 0 auto; min-width: 140px; margin-bottom: 0; }
+  .navitem {
+    flex: 0 0 auto;
+    min-width: 140px;
+    margin-bottom: 0;
+    scroll-snap-align: start;
+    transition: transform 0.12s ease, background var(--transition);
+  }
+  .navitem:active { transform: scale(0.96); }
   .brand-text small { display: none; }
   .reveal { opacity: 1 !important; transform: none !important; }
+
+  .week-foot-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: 24px;
+    padding-top: 18px;
+    border-top: 1px solid var(--border);
+  }
+  .week-foot-nav .btn {
+    flex: 1;
+    justify-content: center;
+    min-height: 42px;
+    font-size: 13px;
+  }
+}
+@media (min-width: 901px) {
+  .week-foot-nav { display: none; }
 }
 
 /* Phone (≤640px) — full mobile layout */
 @media (max-width: 640px) {
-  /* Topbar */
-  .topbar { flex-wrap: wrap; gap: 8px; padding: 10px 14px; }
+  /* Topbar — zero blur overhead during rapid scrolling */
+  .topbar {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 10px 14px;
+    background: var(--bg);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
   .search-wrap { order: 3; flex-basis: 100%; max-width: none; }
   .brand .mark { width: 30px; height: 30px; font-size: 13px; }
 
@@ -908,7 +953,8 @@ html[data-theme="dark"] .card.mastered .face { border-color: rgba(63,185,110,.2)
 
   /* Card grid — single column on small phones */
   .card-grid { grid-template-columns: 1fr; gap: 12px; }
-  .card { height: 185px; }
+  .card { animation: none !important; height: 185px; }
+  .face { box-shadow: none; border-color: var(--border-strong); }
 
   /* Buttons — bigger touch targets */
   .btn { padding: 10px 14px; font-size: 13.5px; min-height: 44px; }
@@ -1067,13 +1113,54 @@ function refreshProgress(){
   });
 }
 
-/* ---------- sidebar ---------- */
+/* ---------- sidebar & week switching ---------- */
 const sb = document.getElementById('sidebar');
+
+let currentWeek = (window.innerWidth <= 900) ? 1 : 'all';
+
+function selectWeek(wn, shouldScroll = true){
+  currentWeek = wn;
+  document.querySelectorAll('.navitem').forEach(btn => {
+    const isAct = btn.dataset.w === String(wn);
+    btn.classList.toggle('active', isAct);
+    if(isAct && window.innerWidth <= 900){
+      btn.scrollIntoView({behavior: 'smooth', inline: 'center', block: 'nearest'});
+    }
+  });
+
+  if(window.innerWidth <= 900 && wn !== 'all'){
+    document.querySelectorAll('.week-section').forEach(sec => {
+      sec.style.display = (sec.dataset.w === String(wn)) ? '' : 'none';
+    });
+    if(shouldScroll){
+      const target = document.querySelector('.week-section[data-w="'+wn+'"]');
+      if(target) target.scrollIntoView({behavior: 'smooth', block: 'start'});
+    }
+  } else {
+    document.querySelectorAll('.week-section').forEach(sec => {
+      sec.style.display = '';
+    });
+    if(wn !== 'all' && shouldScroll){
+      const target = document.querySelector('.week-section[data-w="'+wn+'"]');
+      if(target) target.scrollIntoView({behavior: 'smooth', block: 'start'});
+    }
+  }
+}
+
+// "All Weeks" pill for mobile strip & desktop
+const allPill = document.createElement('button');
+allPill.className = 'navitem' + (currentWeek === 'all' ? ' active' : '');
+allPill.dataset.w = 'all';
+allPill.innerHTML = '<div class="n">OVERVIEW</div><div class="t">All 12 Weeks</div><div class="mini"><i></i></div>';
+allPill.onclick = () => selectWeek('all');
+sb.appendChild(allPill);
+
 weeks.forEach(w=>{
   const a = document.createElement('button');
-  a.className='navitem'; a.dataset.w=w.n;
+  a.className = 'navitem' + (currentWeek === w.n ? ' active' : '');
+  a.dataset.w = w.n;
   a.innerHTML = '<div class="n">WEEK '+w.n+'</div><div class="t">'+esc(w.title)+'</div><div class="mini"><i></i></div>';
-  a.onclick = ()=>document.querySelector('.week-section[data-w="'+w.n+'"]').scrollIntoView({block:'start'});
+  a.onclick = () => selectWeek(w.n);
   sb.appendChild(a);
 });
 const foot = document.createElement('div');
@@ -1098,12 +1185,23 @@ weeks.forEach(w=>{
   h += '</div>';
   h += '<div class="cards-head"><h3>Flashcards</h3><span class="hint">Click a card to flip · tap ✓ to mark mastered</span></div>';
   h += '<div class="card-grid"></div>';
+  
+  // Mobile quick jump at bottom of each week
+  const prevW = w.n > 1 ? w.n - 1 : null;
+  const nextW = w.n < weeks.length ? w.n + 1 : null;
+  let fn = '<div class="week-foot-nav">';
+  if(prevW) fn += '<button class="btn nav-jump" data-w="'+prevW+'">← Week '+prevW+'</button>';
+  fn += '<button class="btn nav-jump" data-w="all">All Weeks</button>';
+  if(nextW) fn += '<button class="btn nav-jump primary" data-w="'+nextW+'">Week '+nextW+' →</button>';
+  fn += '</div>';
+  h += fn;
+
   sec.innerHTML = h;
   const grid = sec.querySelector('.card-grid');
   w.cards.forEach((c,i)=>{
     const b = document.createElement('button');
     b.className='card'+(isM(w.n,i)?' mastered':'');
-    b.dataset.i=i; b.style.animationDelay = Math.min(i,14)*22+'ms';
+    b.dataset.i=i;
     b.innerHTML = '<div class="card-inner">'+
       '<div class="face front"><div class="tag">Q</div><div class="txt">'+fmt(c.q)+'</div><span class="flipc">flip</span></div>'+
       '<div class="face back"><div class="tag">A</div><div class="txt">'+fmt(c.a)+'</div><span class="flipc">flip</span></div>'+
@@ -1119,6 +1217,19 @@ weeks.forEach(w=>{
   });
   content.appendChild(sec);
 });
+
+// Event delegation for quick navigation jump buttons
+document.addEventListener('click', e => {
+  const jumpBtn = e.target.closest('.nav-jump');
+  if(jumpBtn && jumpBtn.dataset.w){
+    selectWeek(jumpBtn.dataset.w === 'all' ? 'all' : parseInt(jumpBtn.dataset.w));
+  }
+});
+
+// Initialize mobile week state
+if(window.innerWidth <= 900){
+  selectWeek(1, false);
+}
 
 /* ---------- reveal on scroll ---------- */
 if('IntersectionObserver' in window && window.innerWidth > 900){
