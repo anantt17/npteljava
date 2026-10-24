@@ -1,4 +1,14 @@
-# NPTEL Java — Interactive Revision
+<div align="center">
+  <img src="logo.png" alt="NPTEL Java Logo" width="110" style="border-radius: 22px; box-shadow: 0 8px 24px rgba(0,0,0,0.15);" />
+  <h1>NPTEL Java — Interactive Revision</h1>
+  <p><b>12 Weeks · 1,800 Flashcards · Interactive Concept Notes</b></p>
+  <p>
+    <a href="https://npteljava.vercel.app"><b>🌐 Live Site</b></a> · 
+    <a href="https://github.com/anantt17/npteljava"><b>🐙 GitHub</b></a>
+  </p>
+</div>
+
+---
 
 I was going through the NPTEL *Programming in Java* course by Prof. Debasis Samanta (IIT Kharagpur) and got tired of re-reading the same PDFs. So I turned all 12 weeks of content into a single-file flashcard site I could actually study from.
 
