@@ -4,7 +4,6 @@
   <p><b>12 Weeks · 1,800 Flashcards · Interactive Concept Notes</b></p>
   <p>
     <a href="https://npteljava.vercel.app"><b>🌐 Live Site</b></a> · 
-    <a href="https://github.com/anantt17/npteljava"><b>🐙 GitHub</b></a>
   </p>
 </div>
 
