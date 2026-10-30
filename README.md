@@ -3,7 +3,6 @@
   <h1>NPTEL Java — Interactive Revision</h1>
   <p><b>12 Weeks · 1,800 Flashcards · Interactive Concept Notes</b></p>
   <p>
-    <a href="https://npteljava.vercel.app"><b>🌐 Live Site</b></a> · 
   </p>
 </div>
 
@@ -28,7 +27,6 @@ Weeks 1–12: OOP basics → data types → scope & recursion → encapsulation 
 
 Just open `index.html` in a browser. No install, no setup, no internet needed (except for Google Fonts).
 
-Or visit the live site → [npteljava.vercel.app](https://npteljava.vercel.app)
 
 ---
 
